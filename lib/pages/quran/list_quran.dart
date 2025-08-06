@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:statemanagement/quran/quran_detail_screen.dart';
+import 'package:statemanagement/pages/quran/quran_detail_screen.dart';
 import 'package:statemanagement/models/quran_model.dart';
 import 'package:statemanagement/services/quran_services.dart';
 
