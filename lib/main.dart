@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:statemanagement/pages/auth/login_screen.dart';
+import 'package:statemanagement/pages/menu_screen.dart';
 import 'package:statemanagement/pages/quran/list_quran.dart';
 import 'package:statemanagement/services/auth_services.dart';
 
@@ -13,7 +14,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Auth Example',
+      debugShowCheckedModeBanner: false,
+      title: 'Belajar Flutter',
       home: AuthCheck(),
     );
   }
@@ -46,7 +48,7 @@ class _AuthCheckState extends State<AuthCheck> {
             body: Center(child: CircularProgressIndicator()),
           );
         } else if (snapshot.hasData && snapshot.data == true) {
-          return const QuranListScreen();
+          return MenuScreen();
         } else {
           return LoginScreen();
         }
