@@ -3,6 +3,8 @@ import 'package:statemanagement/pages/auth/login_screen.dart';
 import 'package:statemanagement/pages/menu_screen.dart';
 import 'package:statemanagement/pages/quran/list_quran.dart';
 import 'package:statemanagement/services/auth_services.dart';
+// Tambahan import untuk halaman dummy
+import 'package:statemanagement/pages/dummy/list_dummy.dart';
 
 void main() {
   runApp(MyApp());
@@ -17,6 +19,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Belajar Flutter',
       home: AuthCheck(),
+      // Tambahan route untuk halaman dummy
+      routes: {
+        '/dummy': (context) => const ListQummyScreen(),
+      },
     );
   }
 }

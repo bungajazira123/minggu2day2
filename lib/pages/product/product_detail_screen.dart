@@ -8,35 +8,93 @@ class ProductDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const primaryColor = Colors.deepPurple; // Warna konsisten
     return Scaffold(
-      appBar: AppBar(title: Text('Product Detail')),
+      appBar: AppBar(
+        title: const Text('Product Detail'),
+        backgroundColor: primaryColor,
+        elevation: 0,
+      ),
       body: FutureBuilder(
         future: ProductService.showProduct(productId),
         builder: (context, snapshot) {
-          if (!snapshot.hasData)
-            return Center(child: CircularProgressIndicator());
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
           final product = snapshot.data!;
-          return Padding(
+          return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                Image.network(
-                  'http://127.0.0.1:8000/storage/${product.image}',
-                  height: 200,
+                Hero(
+                  tag: 'product-${product.id}',
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.network(
+                      'http://127.0.0.1:8000/storage/${product.image}',
+                      height: 250,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
-                SizedBox(height: 16),
-                Text(
-                  product.name,
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                const SizedBox(height: 20),
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          product.name,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          product.description,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Rp ${product.price}',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: primaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                Text(product.description),
-                Text('Rp ${product.price}'),
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     ElevatedButton.icon(
-                      icon: Icon(Icons.edit),
-                      label: Text("Edit"),
+                      icon: const Icon(Icons.edit),
+                      label: const Text("Edit"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                      ),
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -47,14 +105,45 @@ class ProductDetailScreen extends StatelessWidget {
                       },
                     ),
                     ElevatedButton.icon(
-                      icon: Icon(Icons.delete),
-                      label: Text("Delete"),
+                      icon: const Icon(Icons.delete),
+                      label: const Text("Delete"),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
                       ),
                       onPressed: () async {
-                        await ProductService.deleteProduct(product.id);
-                        Navigator.pop(context);
+                        final confirm = await showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text("Konfirmasi"),
+                            content: const Text(
+                                "Apakah Anda yakin ingin menghapus produk ini?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: const Text("Batal"),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: const Text(
+                                  "Hapus",
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirm == true) {
+                          await ProductService.deleteProduct(product.id);
+                          Navigator.pop(context);
+                        }
                       },
                     ),
                   ],

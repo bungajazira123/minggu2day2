@@ -26,91 +26,130 @@ class QuranDetailScreen extends StatelessWidget {
     required this.keterangan,
   });
 
+  static const primaryColor = Colors.deepPurple;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(primaryColor: primaryColor),
       home: Scaffold(
-        appBar: AppBar(
-          title: Text('Detail Surah $nama'),
-          backgroundColor: Colors.green[700],
-        ),
         body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Text(
-                    asma,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+          child: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 180,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  title: Text(nama),
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          primaryColor.withOpacity(0.85),
+                          primaryColor.withOpacity(0.65),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        asma,
+                        style: const TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                Center(
-                  child: Text(
-                    nama,
-                    style: const TextStyle(
-                        fontSize: 20, fontStyle: FontStyle.italic),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoCard(
+                        icon: Icons.translate,
+                        title: "Arti",
+                        value: arti,
+                      ),
+                      _buildInfoCard(
+                        icon: Icons.format_list_numbered,
+                        title: "Jumlah Ayat",
+                        value: "$ayat ayat",
+                      ),
+                      _buildInfoCard(
+                        icon: Icons.bookmark_border,
+                        title: "Jenis",
+                        value: type,
+                      ),
+                      _buildInfoCard(
+                        icon: Icons.history,
+                        title: "Urutan Pewahyuan",
+                        value: urut.toString(),
+                      ),
+                      _buildInfoCard(
+                        icon: Icons.filter_1,
+                        title: "Nomor Surah",
+                        value: nomor.toString(),
+                      ),
+                      _buildInfoCard(
+                        icon: Icons.menu_book,
+                        title: "Jumlah Rukuk",
+                        value: rukuk.toString(),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        "Keterangan:",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        keterangan,
+                        style: const TextStyle(fontSize: 16, height: 1.5),
+                        textAlign: TextAlign.justify,
+                      ),
+                    ],
                   ),
                 ),
-                const Divider(height: 30, thickness: 1),
-                InfoTile(title: "Arti", value: arti),
-                InfoTile(title: "Jumlah Ayat", value: "$ayat ayat"),
-                InfoTile(title: "Jenis", value: type),
-                InfoTile(title: "Urutan Pewahyuan", value: urut.toString()),
-                InfoTile(title: "Nomor Surah", value: nomor.toString()),
-                InfoTile(title: "Jumlah Rukuk", value: rukuk.toString()),
-                const SizedBox(height: 20),
-                const Text(
-                  "Keterangan:",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  keterangan,
-                  style: const TextStyle(fontSize: 16),
-                  textAlign: TextAlign.justify,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
-}
 
-class InfoTile extends StatelessWidget {
-  final String title;
-  final String value;
-
-  const InfoTile({super.key, required this.title, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Text(
-              "$title:",
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-          ),
-          Expanded(
-            flex: 5,
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-        ],
+  Widget _buildInfoCard({
+    required IconData icon,
+    required String title,
+    required String value,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: primaryColor.withOpacity(0.15),
+          foregroundColor: primaryColor,
+          child: Icon(icon),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+        ),
+        subtitle: Text(
+          value,
+          style: const TextStyle(fontSize: 15),
+        ),
       ),
     );
   }

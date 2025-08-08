@@ -21,13 +21,15 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
   Uint8List? _imageBytes;
   String? _imageName;
 
+  final _formKey = GlobalKey<FormState>();
+  static const primaryColor = Colors.deepPurple;
+
   @override
   void initState() {
     _nameController = TextEditingController(text: widget.product.name);
     _descController = TextEditingController(text: widget.product.description);
-    _priceController = TextEditingController(
-      text: widget.product.price.toString(),
-    );
+    _priceController =
+        TextEditingController(text: widget.product.price.toString());
     super.initState();
   }
 
@@ -44,57 +46,149 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
   }
 
   void submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
     final success = await ProductService.updateProduct(
       widget.product.id,
       _nameController.text,
       _descController.text,
-      double.parse(_priceController.text),
+      double.tryParse(_priceController.text) ?? 0.0,
       _imageBytes,
       _imageName,
     );
+
     if (success) {
-      // Arahkan ke halaman ListProductPage
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => HomeScreen()),
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Gagal memperbarui produk')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal memperbarui produk')),
+      );
     }
+  }
+
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: primaryColor, width: 2),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Edit Product")),
-      body: Padding(
+      appBar: AppBar(
+        title: const Text("Edit Product"),
+        backgroundColor: primaryColor,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(labelText: "Name"),
+        child: Card(
+          elevation: 5,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: _inputDecoration("Name"),
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Name is required"
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _descController,
+                    decoration: _inputDecoration("Description"),
+                    maxLines: 3,
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Description is required"
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _priceController,
+                    decoration: _inputDecoration("Price"),
+                    keyboardType: TextInputType.number,
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Price is required"
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.image),
+                    label: const Text("Pick New Image"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                    ),
+                    onPressed: pickImage,
+                  ),
+                  const SizedBox(height: 12),
+
+ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: _imageBytes != null
+                        ? Image.memory(
+                            _imageBytes!,
+                            height: 150,
+                            fit: BoxFit.cover,
+                          )
+                        : (widget.product.image != null &&
+                                widget.product.image.isNotEmpty)
+                            ? Image.network(
+                                'http://127.0.0.1:8000/storage/${widget.product.image}',
+                                height: 150,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                height: 150,
+                                color: Colors.grey[300],
+                                child: const Icon(
+                                  Icons.image_not_supported,
+                                  size: 50,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                  ),
+
+
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.save),
+                    label: const Text("Update"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 14,
+                      ),
+                    ),
+                    onPressed: submit,
+                  ),
+                ],
               ),
-              TextField(
-                controller: _descController,
-                decoration: InputDecoration(labelText: "Description"),
-              ),
-              TextField(
-                controller: _priceController,
-                decoration: InputDecoration(labelText: "Price"),
-                keyboardType: TextInputType.number,
-              ),
-              ElevatedButton(
-                onPressed: pickImage,
-                child: Text("Pick New Image"),
-              ),
-              if (_imageBytes != null) Image.memory(_imageBytes!, height: 100),
-              SizedBox(height: 20),
-              ElevatedButton(onPressed: submit, child: Text("Update")),
-            ],
+            ),
           ),
         ),
       ),

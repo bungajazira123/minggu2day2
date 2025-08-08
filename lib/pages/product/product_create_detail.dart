@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:statemanagement/services/product_services.dart';
+
 class ProductCreateScreen extends StatefulWidget {
   const ProductCreateScreen({super.key});
 
@@ -17,6 +18,9 @@ class _ProductCreateScreenState extends State<ProductCreateScreen> {
   Uint8List? _imageBytes;
   String? _imageName;
 
+  final _formKey = GlobalKey<FormState>();
+  static const primaryColor = Colors.deepPurple;
+
   Future pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) {
@@ -29,7 +33,13 @@ class _ProductCreateScreenState extends State<ProductCreateScreen> {
   }
 
   void submit() async {
-    if (_imageBytes == null || _imageName == null) return;
+    if (!_formKey.currentState!.validate()) return;
+    if (_imageBytes == null || _imageName == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select an image")),
+      );
+      return;
+    }
 
     final success = await ProductService.createProduct(
       _nameController.text,
@@ -42,39 +52,114 @@ class _ProductCreateScreenState extends State<ProductCreateScreen> {
     if (success) {
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Failed to create product")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to create product")),
+      );
     }
+  }
+
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: primaryColor, width: 2),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Create Product")),
-      body: Padding(
-        padding: EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(labelText: "Name"),
+      appBar: AppBar(
+        title: const Text("Create Product"),
+        backgroundColor: primaryColor,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Card(
+          elevation: 4,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: _inputDecoration("Name"),
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Name is required"
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _descController,
+                    decoration: _inputDecoration("Description"),
+                    maxLines: 3,
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Description is required"
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _priceController,
+                    decoration: _inputDecoration("Price"),
+                    keyboardType: TextInputType.number,
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Price is required"
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.image),
+                    label: const Text("Pick Image"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                    ),
+                    onPressed: pickImage,
+                  ),
+                  if (_imageBytes != null) ...[
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.memory(
+                        _imageBytes!,
+                        height: 150,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.check),
+                    label: const Text("Submit"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 14,
+                      ),
+                    ),
+                    onPressed: submit,
+                  ),
+                ],
               ),
-              TextField(
-                controller: _descController,
-                decoration: InputDecoration(labelText: "Description"),
-              ),
-              TextField(
-                controller: _priceController,
-                decoration: InputDecoration(labelText: "Price"),
-                keyboardType: TextInputType.number,
-              ),
-              ElevatedButton(onPressed: pickImage, child: Text("Pick Image")),
-              if (_imageBytes != null) Image.memory(_imageBytes!, height: 100),
-              SizedBox(height: 20),
-              ElevatedButton(onPressed: submit, child: Text("Submit")),
-            ],
+            ),
           ),
         ),
       ),
